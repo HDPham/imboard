@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "indentation": 0,
+    "leading-zero": 0,
+    "no-empty-rulesets": 0,
+    "no-ids": 0,
+    "property-sort-order": 0
+  }
+}

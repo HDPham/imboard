@@ -1,0 +1,69 @@
+$bg-dark: #111;
+
+.modal-transition {
+	background-color: transparent;
+	border-color: transparent;
+}
+
+.player-container {
+	flex-basis: 100%;
+	min-width: 10rem;
+
+	.btn-player {
+		min-width: 7.5rem;
+
+		> img {
+			height: 2rem;
+			width: 2rem;
+			top: -1rem;
+			right: -1rem;
+		}
+	}
+}
+
+.ready-icon {
+	right: 1rem;
+}
+
+#side-panel {
+	width: 12.5rem;
+}
+
+#card-display {
+	min-height: 40vh;
+	background-color: $bg-dark;
+}
+
+.loading {
+	overflow: hidden;
+	animation: ellipsis steps(4, jump-none) 900ms infinite;
+	width: 0.01%;
+}
+
+@keyframes ellipsis {
+	to {
+		width: 100%;
+	}
+}
+
+// Extra small devices (portrait phones, less than 576px)
+// No media query since this is the default in Bootstrap
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {
+	.player-container {
+		flex-basis: 20%;
+	}
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {
+}
+
+// Extra large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+}
