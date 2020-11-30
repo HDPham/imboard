@@ -8,10 +8,7 @@ class GameTable extends Component {
 		return (
 			<Row className="flex-center justify-content-xl-start w-100">
 				<Col xs={12} md={4} lg={3}>
-					<div
-						id={styles['side-panel']}
-						className="mx-auto border rounded"
-					>
+					<div id={styles['side-panel']} className="mx-auto border rounded">
 						{this.props.sidePanel}
 					</div>
 				</Col>
@@ -31,9 +28,9 @@ class GameTable extends Component {
 GameTable.propTypes = {
 	sidePanel: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 		.isRequired,
-	cardState: PropTypes.shape({
-		cards: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
-		index: PropTypes.number.isRequired
+	cardState: PropTypes.exact({
+		index: PropTypes.number.isRequired,
+		cards: PropTypes.arrayOf(PropTypes.string).isRequired
 	}).isRequired
 };
 

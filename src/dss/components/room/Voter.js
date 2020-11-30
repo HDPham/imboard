@@ -8,7 +8,7 @@ class Voter extends Component {
 	render() {
 		return (
 			<Row className="mt-2 align-items-center">
-				{this.props.room.players.map((player, index) => (
+				{this.props.players.map((player, index) => (
 					<Col
 						key={player.name}
 						className={`mt-4 ${styles['player-container']}`}
@@ -19,8 +19,7 @@ class Voter extends Component {
 							data-index={index}
 							className={classNames({
 								'position-relative': true,
-								'btn-active':
-									player.name === this.props.chosenPlayerName,
+								'btn-active': player.name === this.props.chosenPlayerName,
 								[styles['btn-player']]: true
 							})}
 							onClick={this.props.choosePlayer}
@@ -44,7 +43,13 @@ class Voter extends Component {
 }
 
 Voter.propTypes = {
-	room: PropTypes.object.isRequired
+	players: PropTypes.arrayOf(
+		PropTypes.exact({
+			name: PropTypes.string.isRequired,
+			isReady: PropTypes.bool.isRequired,
+			score: PropTypes.number.isRequired
+		})
+	).isRequired
 };
 
 export default Voter;

@@ -16,8 +16,7 @@ class Stage1 extends Component {
 
 		const isPlayer = currPlayer !== null,
 			isJudge = currPlayer?.name === judgeName,
-			isNomineeButton =
-				e.currentTarget.value === currPlayer?.chosenPlayerName,
+			isNomineeButton = e.currentTarget.value === currPlayer?.chosenPlayerName,
 			isJudgeButton = e.currentTarget.value === judgeName;
 
 		if (
@@ -45,9 +44,7 @@ class Stage1 extends Component {
 			updatedPoll[e.currentTarget.value].push(currPlayer.name);
 			if (currPlayer.chosenPlayerName !== '') {
 				updatedPoll[currPlayer.chosenPlayerName].splice(
-					updatedPoll[currPlayer.chosenPlayerName].indexOf(
-						currPlayer.name
-					),
+					updatedPoll[currPlayer.chosenPlayerName].indexOf(currPlayer.name),
 					1
 				);
 			}
@@ -108,16 +105,13 @@ class Stage1 extends Component {
 
 		return (
 			<>
-				<GameTable
-					sidePanel={readyPanel}
-					cardState={this.props.cardState}
-				/>
+				<GameTable sidePanel={readyPanel} cardState={this.props.cardState} />
 				<div className="mt-5 font-weight-bold">
-					Initial Voting Stage: Everyone, except the judge, chooses
-					who they think the statement applies to most
+					Initial Voting Stage: Everyone, except the judge, chooses who they
+					think the statement applies to most
 				</div>
 				<Voter
-					room={room}
+					players={room.players}
 					judgeName={judgeName}
 					chosenPlayerName={currPlayer.chosenPlayerName}
 					choosePlayer={this.choosePlayer}
@@ -130,8 +124,7 @@ class Stage1 extends Component {
 						onClick={this.nextStage}
 						disabled={
 							!room.players.every(
-								player =>
-									player.isReady || player.name === judgeName
+								player => player.isReady || player.name === judgeName
 							)
 						}
 					>
@@ -144,7 +137,7 @@ class Stage1 extends Component {
 }
 
 Stage1.propTypes = {
-	cardState: PropTypes.shape({
+	cardState: PropTypes.exact({
 		index: PropTypes.number.isRequired,
 		cards: PropTypes.arrayOf(PropTypes.string).isRequired
 	}).isRequired,

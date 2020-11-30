@@ -69,10 +69,7 @@ class CoupRoom extends Component {
 				case 'Assassin':
 					updatedTurnPlayer.numCoins -= 3;
 
-					socket.emit(
-						'update room (all clients) [coup]',
-						updatedRoom
-					);
+					socket.emit('update room (all clients) [coup]', updatedRoom);
 
 					if (this.state.targetPlayer.numCards === 1) {
 						socket.emit(
@@ -103,8 +100,7 @@ class CoupRoom extends Component {
 						this.state.targetPlayer.name
 					);
 					if (updatedTargetPlayer.numCoins < 2) {
-						updatedTurnPlayer.numCoins +=
-							updatedTargetPlayer.numCoins;
+						updatedTurnPlayer.numCoins += updatedTargetPlayer.numCoins;
 						updatedTargetPlayer.numCoins = 0;
 					} else {
 						updatedTurnPlayer.numCoins += 2;
@@ -133,10 +129,7 @@ class CoupRoom extends Component {
 				if (action === 'Income') {
 					updatedTurnPlayer.numCoins++;
 
-					socket.emit(
-						'update room (all clients) [coup]',
-						updatedRoom
-					);
+					socket.emit('update room (all clients) [coup]', updatedRoom);
 					socket.emit('display results [coup]', action);
 
 					return;
@@ -145,23 +138,12 @@ class CoupRoom extends Component {
 				if (action === 'Coup') {
 					updatedTurnPlayer.numCoins -= 7;
 
-					socket.emit(
-						'update room (all clients) [coup]',
-						updatedRoom
-					);
+					socket.emit('update room (all clients) [coup]', updatedRoom);
 
 					if (this.state.targetPlayer.numCards === 1) {
-						socket.emit(
-							'remove cards [coup]',
-							action,
-							true,
-							targetPlayer.name
-						);
+						socket.emit('remove cards [coup]', action, true, targetPlayer.name);
 					} else {
-						socket.emit(
-							'transition to removal [coup]',
-							targetPlayer.name
-						);
+						socket.emit('transition to removal [coup]', targetPlayer.name);
 					}
 
 					return;
@@ -290,9 +272,7 @@ class CoupRoom extends Component {
 				() => {
 					if (this.context.currPlayer.name === loser.name) {
 						const isEliminated =
-							loser.numCards === 1 ||
-							isSituation1 ||
-							isSituation2;
+							loser.numCards === 1 || isSituation1 || isSituation2;
 
 						if (isEliminated) {
 							socket.emit(
@@ -302,10 +282,7 @@ class CoupRoom extends Component {
 								loser.name
 							);
 						} else {
-							socket.emit(
-								'transition to removal [coup]',
-								loser.name
-							);
+							socket.emit('transition to removal [coup]', loser.name);
 						}
 					}
 				}
@@ -338,9 +315,7 @@ class CoupRoom extends Component {
 				logContent = (
 					<>
 						{challengerName} challenges {defendantName}'s{' '}
-						{blocker === null
-							? action
-							: `block with ${counteraction}`}
+						{blocker === null ? action : `block with ${counteraction}`}
 						.<br />
 						{defendantName}{' '}
 						{isTruth ? (
@@ -388,7 +363,8 @@ class CoupRoom extends Component {
 				let logContent = null;
 				let timeLeft = 5;
 
-				let nextTurnIndex = this.context.room.turnIndex;
+				const { turnIndex } = this.context.room;
+				let nextTurnIndex = turnIndex;
 				do {
 					nextTurnIndex =
 						nextTurnIndex >= this.context.room.players.length - 1
@@ -411,12 +387,9 @@ class CoupRoom extends Component {
 					case 'Coup':
 						logContent = (
 							<>
-								{turnPlayer.name} use {action} on{' '}
-								{targetPlayer.name}.<br />
-								{targetPlayer.name} loses{' '}
-								{removedCards.join(' & ')}.<br />
-								{targetPlayer.name} has no more cards left and
-								is eliminated.
+								{turnPlayer.name} use {action} on {targetPlayer.name}.<br />
+								{targetPlayer.name} loses {removedCards.join(' & ')}.<br />
+								{targetPlayer.name} has no more cards left and is eliminated.
 							</>
 						);
 						timeLeft = 10;
@@ -427,12 +400,9 @@ class CoupRoom extends Component {
 					case 'Assassin':
 						logContent = (
 							<>
-								{turnPlayer.name} assassinates{' '}
-								{targetPlayer.name}.<br />
-								{targetPlayer.name} loses{' '}
-								{removedCards.join(' & ')}.<br />
-								{targetPlayer.name} has no more cards left and
-								is eliminated.
+								{turnPlayer.name} assassinates {targetPlayer.name}.<br />
+								{targetPlayer.name} loses {removedCards.join(' & ')}.<br />
+								{targetPlayer.name} has no more cards left and is eliminated.
 							</>
 						);
 						timeLeft = 10;
@@ -465,21 +435,17 @@ class CoupRoom extends Component {
 									'Lied'
 								)}
 								.<br />
-								{isTruth
-									? challengerName
-									: defendantName} loses{' '}
+								{isTruth ? challengerName : defendantName} loses{' '}
 								{removedCards.join(' & ')}.
 								<br />
-								{isTruth ? challengerName : defendantName} has
-								no more cards left and is eliminated.
+								{isTruth ? challengerName : defendantName} has no more cards
+								left and is eliminated.
 							</>
 						);
 						timeLeft = 10;
 						break;
 					case 'Removal':
-						logContent = `${loserName} gets rid of ${removedCards.join(
-							' & '
-						)}`;
+						logContent = `${loserName} gets rid of ${removedCards.join(' & ')}`;
 						break;
 					default:
 						break;
@@ -497,7 +463,7 @@ class CoupRoom extends Component {
 
 						if (
 							this.context.currPlayer.name ===
-							this.context.room.players[nextTurnIndex].name
+							this.context.room.players[turnIndex].name
 						) {
 							if (isRoundOver) {
 								socket.emit('next round [coup]', nextTurnIndex);
@@ -572,18 +538,14 @@ class CoupRoom extends Component {
 
 			do {
 				nextTurnIndex =
-					nextTurnIndex >= room.players.length - 1
-						? 0
-						: nextTurnIndex + 1;
+					nextTurnIndex >= room.players.length - 1 ? 0 : nextTurnIndex + 1;
 			} while (room.players[nextTurnIndex].isEliminated);
 
 			if (currPlayer.name === room.players[nextTurnIndex].name) {
 				const isGameOver =
 					room.players.reduce(
 						(numPlayerLeft, player) =>
-							player.isEliminated
-								? numPlayerLeft
-								: numPlayerLeft + 1,
+							player.isEliminated ? numPlayerLeft : numPlayerLeft + 1,
 						0
 					) <= 1;
 
@@ -737,17 +699,16 @@ class CoupRoom extends Component {
 					timeLeft={timeLeft}
 				/>
 				<div className="mt-4 text-center">{logContent}</div>
-				{stage === 'Choose Action' &&
-					currPlayer.name === turnPlayer.name && (
-						<Stage1
-							turnPlayerNumCoins={turnPlayer.numCoins}
-							action={action}
-							targetPlayerName={targetPlayer?.name}
-							chooseActionSelect={this.chooseActionSelect}
-							chooseActionButton={this.chooseActionButton}
-							submitAction={this.submitAction}
-						/>
-					)}
+				{stage === 'Choose Action' && currPlayer.name === turnPlayer.name && (
+					<Stage1
+						turnPlayerNumCoins={turnPlayer.numCoins}
+						action={action}
+						targetPlayerName={targetPlayer?.name}
+						chooseActionSelect={this.chooseActionSelect}
+						chooseActionButton={this.chooseActionButton}
+						submitAction={this.submitAction}
+					/>
+				)}
 				{stage === 'Action Rebuttal' &&
 					(currPlayer.isEliminated
 						? false
@@ -775,10 +736,9 @@ class CoupRoom extends Component {
 					currPlayer.name === turnPlayer.name && (
 						<Stage4 turnPlayerNumCards={turnPlayer.numCards} />
 					)}
-				{stage === 'Influence Removal' &&
-					currPlayer.name === loserName && (
-						<Stage5 isRoundOver={this.isRoundOver} />
-					)}
+				{stage === 'Influence Removal' && currPlayer.name === loserName && (
+					<Stage5 isRoundOver={this.isRoundOver} />
+				)}
 				{stage === 'Game Over' && (
 					<Link to="/coup/lobby" replace className="mt-3">
 						<Button outline color="success">

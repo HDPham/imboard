@@ -7,7 +7,7 @@ const initialState = {
 		{
 			_id: String, 
 			code: String, 
-			players: Array [Object {name: String, isReady: Boolean}], 
+			players: Array [Object {name: String, isReady: Boolean, score: Number}], 
 			judgeIndex: Number, 
 			inProgress: Boolean
 		}

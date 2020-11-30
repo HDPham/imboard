@@ -95,9 +95,7 @@ module.exports = function (io, socket, socketData, storage) {
 
 	socket.on('action [coup]', (action, targetPlayer, isTruth) => {
 		storage.get(socketData.roomId).isTruth = isTruth;
-		socket
-			.to(socketData.roomId)
-			.emit('action (others)', action, targetPlayer);
+		socket.to(socketData.roomId).emit('action (others)', action, targetPlayer);
 		socket.emit('action', action, targetPlayer);
 	});
 
@@ -129,12 +127,7 @@ module.exports = function (io, socket, socketData, storage) {
 			});
 		}
 
-		io.to(socketData.roomId).emit(
-			'challenge',
-			challenger,
-			defendant,
-			isTruth
-		);
+		io.to(socketData.roomId).emit('challenge', challenger, defendant, isTruth);
 	});
 
 	socket.on('transition to exchange [coup]', () => {
@@ -168,15 +161,10 @@ module.exports = function (io, socket, socketData, storage) {
 	socket.on(
 		'remove cards [coup]',
 		(action, isRoundOver, playerName, keptCardIndexes = []) => {
-			const {
-				room,
-				playerCardMap,
-				playerSocketMap,
-				isTruth
-			} = storage.get(socketData.roomId);
-			const player = room.players.find(
-				player => player.name === playerName
+			const { room, playerCardMap, playerSocketMap, isTruth } = storage.get(
+				socketData.roomId
 			);
+			const player = room.players.find(player => player.name === playerName);
 			const playerCards = playerCardMap.get(playerName);
 			const keptCards = playerCards.filter((card, index) =>
 				keptCardIndexes.includes(index)

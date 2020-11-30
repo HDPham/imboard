@@ -37,13 +37,11 @@ class DssRoom extends Component {
 				className="d-flex-column flex-center min-vh-100 py-4 text-center"
 			>
 				{stage === 1 && (
-					<Stage1
-						cardState={{ index: cardIndex, cards }}
-						poll={poll}
-					/>
+					<Stage1 cardState={{ index: cardIndex, cards }} poll={poll} />
 				)}
 				{stage === 2 && (
 					<Stage2
+						players={room.players}
 						cardState={{ index: cardIndex, cards }}
 						poll={poll}
 					/>

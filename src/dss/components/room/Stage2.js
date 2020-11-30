@@ -19,7 +19,7 @@ class Stage2 extends Component {
 			isEndModalActive: false,
 			modalText: '',
 			isTransitioning: false,
-			initialRoom: context.room
+			judgeName: context.room.players[context.room.judgeIndex].name
 		};
 	}
 
@@ -29,20 +29,41 @@ class Stage2 extends Component {
 			chosenPlayerName: ''
 		});
 
-		socket.on('round transition', (updatedRoom, chosenPlayerName) => {
-			this.setState({
-				isTransitionModalActive: true,
-				modalText: `${this.context.judgeName} chose ${chosenPlayerName}`,
-				isTransitioning: true,
-				roomPlaceholder: updatedRoom
-			});
+		socket.on('round transition', chosenPlayerName => {
+			this.setState(
+				{
+					isTransitionModalActive: true,
+					modalText: `${this.context.judgeName} chose ${chosenPlayerName}`,
+					isTransitioning: true
+				},
+				() => {
+					this.props.setTimeout(() => {
+						const modalEl = document.querySelector('div.modal');
+						modalEl.classList.remove('show');
+						this.props.setTimeout(() => {
+							this.setState({ modalText: 'Next round!' });
+							modalEl.classList.add('show');
+							this.props.setTimeout(() => {
+								this.setState({ isTransitionModalActive: false });
+							}, 3000);
+						}, 500);
+					}, 6000);
+				}
+			);
 		});
 		socket.on('game over transition', loserName => {
-			this.setState({
-				isEndModalActive: true,
-				modalText: `${loserName} Lost!`,
-				isTransitioning: true
-			});
+			this.setState(
+				{
+					isEndModalActive: true,
+					modalText: `${loserName} Lost!`,
+					isTransitioning: true
+				},
+				() => {
+					this.props.setTimeout(() => {
+						this.setState({ isEndModalActive: false });
+					}, 6000);
+				}
+			);
 		});
 
 		socket.on('start game', () => {
@@ -50,38 +71,16 @@ class Stage2 extends Component {
 		});
 	}
 
-	componentDidUpdate(prevProps, prevState) {
-		if (
-			prevState.isTransitionModalActive !==
-				this.state.isTransitionModalActive &&
-			this.state.isTransitionModalActive
-		) {
-			this.props.setTimeout(() => {
-				const modalEl = document.querySelector('div.modal');
-				modalEl.classList.remove('show');
-				this.props.setTimeout(() => {
-					this.setState({ modalText: 'Next round!' });
-					modalEl.classList.add('show');
-					this.props.setTimeout(() => {
-						this.setState({ isTransitionModalActive: false });
-					}, 3000);
-				}, 500);
-			}, 6000);
-		}
-
-		if (
-			prevState.isEndModalActive !== this.state.isEndModalActive &&
-			this.state.isEndModalActive
-		) {
-			this.props.setTimeout(() => {
-				this.setState({ isEndModalActive: false });
-			}, 6000);
+	componentDidUpdate(prevProps) {
+		if (prevProps.players.length !== this.props.players.length) {
+			this.setState({
+				judgeName: this.context.room.players[this.context.room.judgeIndex].name
+			});
 		}
 	}
 
 	choosePlayer = e => {
-		const isJudge =
-				this.context.currPlayer?.name === this.context.judgeName,
+		const isJudge = this.context.currPlayer?.name === this.context.judgeName,
 			isNomineeButton =
 				e.currentTarget.value === this.state.chosenButton?.value,
 			isJudgeButton = e.currentTarget.value === this.context.judgeName;
@@ -119,16 +118,12 @@ class Stage2 extends Component {
 		if (updatedScore < 7) {
 			// Continue Game
 			const updatedCards = [...cardState.cards];
-			updatedCards.splice(cardState.cardIndex, 1);
+			updatedCards.splice(cardState.index, 1);
 
-			const nextCardIndex = Math.floor(
-				Math.random() * updatedCards.length
-			);
+			const nextCardIndex = Math.floor(Math.random() * updatedCards.length);
 
 			updatedRoom.judgeIndex =
-				room.judgeIndex < room.players.length - 1
-					? room.judgeIndex + 1
-					: 0;
+				room.judgeIndex < room.players.length - 1 ? room.judgeIndex + 1 : 0;
 
 			socket.emit('set room state [dss]', {
 				stage: 1,
@@ -136,11 +131,7 @@ class Stage2 extends Component {
 				cards: updatedCards,
 				poll: {}
 			});
-			socket.emit(
-				'round transition [dss]',
-				updatedRoom,
-				chosenButton.value
-			);
+			socket.emit('round transition [dss]', chosenButton.value);
 		} else {
 			// Game Over
 			updatedRoom.inProgress = false;
@@ -174,17 +165,16 @@ class Stage2 extends Component {
 	}
 
 	render() {
-		const { currPlayer } = this.context,
+		const { room, currPlayer } = this.context,
 			{ cardState, poll } = this.props,
 			{
-				initialRoom: room,
 				chosenButton,
 				isReady,
 				isTransitionModalActive,
 				isEndModalActive,
-				modalText
+				modalText,
+				judgeName
 			} = this.state;
-		const judgeName = room.players[room.judgeIndex].name;
 
 		const pollPanel = Object.entries(poll)
 			.filter(entry => entry[1].length > 0)
@@ -228,7 +218,7 @@ class Stage2 extends Component {
 					</div>
 				)}
 				<Voter
-					room={room}
+					players={room.players}
 					judgeName={judgeName}
 					chosenPlayerName={chosenButton?.value}
 					choosePlayer={this.choosePlayer}
@@ -250,9 +240,7 @@ class Stage2 extends Component {
 					centered={true}
 					contentClassName={styles['modal-transition']}
 				>
-					<ModalBody className="text-center display-4">
-						{modalText}
-					</ModalBody>
+					<ModalBody className="text-center display-4">{modalText}</ModalBody>
 				</Modal>
 			</>
 		);
@@ -260,7 +248,14 @@ class Stage2 extends Component {
 }
 
 Stage2.propTypes = {
-	cardState: PropTypes.shape({
+	players: PropTypes.arrayOf(
+		PropTypes.exact({
+			name: PropTypes.string.isRequired,
+			isReady: PropTypes.bool.isRequired,
+			score: PropTypes.number.isRequired
+		})
+	).isRequired,
+	cardState: PropTypes.exact({
 		index: PropTypes.number.isRequired,
 		cards: PropTypes.arrayOf(PropTypes.string).isRequired
 	}).isRequired,

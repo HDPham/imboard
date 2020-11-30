@@ -37,12 +37,8 @@ module.exports = function (io, socket, socketData, storage) {
 		io.to(socketData.roomId).emit('go to stage 2');
 	});
 
-	socket.on('round transition [dss]', (updatedRoom, chosenPlayerName) => {
-		io.to(socketData.roomId).emit(
-			'round transition',
-			updatedRoom,
-			chosenPlayerName
-		);
+	socket.on('round transition [dss]', chosenPlayerName => {
+		io.to(socketData.roomId).emit('round transition', chosenPlayerName);
 	});
 
 	socket.on('game over transition [dss]', loserName => {

@@ -46,7 +46,7 @@ class Stage3 extends Component {
 
 Stage3.propTypes = {
 	counteraction: PropTypes.string.isRequired,
-	blocker: PropTypes.shape({
+	blocker: PropTypes.exact({
 		name: PropTypes.string.isRequired,
 		numCards: PropTypes.number.isRequired
 	}).isRequired,
