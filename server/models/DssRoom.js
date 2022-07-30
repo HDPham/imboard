@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const config = require('../config');
 
 const playerSchema = new mongoose.Schema(
   {
@@ -60,4 +61,7 @@ const roomSchema = new mongoose.Schema(
   { versionKey: false },
 );
 
-module.exports = mongoose.model('dss_rooms', roomSchema);
+module.exports = mongoose.model(
+  config.NODE_ENV === 'production' ? 'dss_rooms' : 'dss_rooms_dev',
+  roomSchema,
+);

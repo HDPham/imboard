@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const config = require('../config');
 
 const playerSchema = new mongoose.Schema(
   {
@@ -64,4 +65,7 @@ roomSchema.set('toJSON', {
   },
 });
 
-module.exports = mongoose.model('coup_rooms', roomSchema);
+module.exports = mongoose.model(
+  config.NODE_ENV === 'production' ? 'coup_rooms' : 'coup_rooms_dev',
+  roomSchema,
+);

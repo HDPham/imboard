@@ -1,6 +1,5 @@
 const io = require('./socketIO');
 const {
-  getSocketsInRoom,
   getSocketsInGame,
   roomIsEmpty,
   getRoom,
@@ -35,7 +34,7 @@ io.of(NAMESPACE).use(async (socket, next) => {
 });
 
 io.of(NAMESPACE).on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.data.id}`);
+  // console.log(`Socket connected: ${socket.data.id}`);
 
   const { roomId } = socket.data;
 
@@ -203,7 +202,7 @@ io.of(NAMESPACE).on('connection', (socket) => {
   });
 
   socket.on('disconnect', async () => {
-    console.log(`Socket disconnected: ${socket.data.id}`);
+    // console.log(`Socket disconnected: ${socket.data.id}`);
 
     if (await roomIsEmpty(roomId, 'dss')) {
       await DssRoom.findByIdAndDelete(roomId);

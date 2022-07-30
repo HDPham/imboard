@@ -17,8 +17,8 @@ class Chat extends Component {
    * @param {Object} e
    */
   maintainScrollBottom(e) {
-    const chatEl = document.querySelector('#chat');
-    const chatBodyEl = chatEl.querySelector('.' + styles['chat-body']);
+    const chatEl = document.querySelector('.chat');
+    const chatBodyEl = chatEl.querySelector('.chat-body');
     const prevChatBodyClientHeight = chatBodyEl.clientHeight;
     if (e.matches) {
       const prevChatBodyScrollTop = chatBodyEl.scrollTop;
@@ -46,7 +46,7 @@ class Chat extends Component {
       messageDiv.append(playerNameSpan);
       messageDiv.append(`: ${message}`);
 
-      const chatBodyEl = document.querySelector('.' + styles['chat-body']);
+      const chatBodyEl = document.querySelector('.chat-body');
       const isScrollAtBottom =
         chatBodyEl.scrollTop + chatBodyEl.clientHeight >=
         chatBodyEl.scrollHeight;
@@ -56,10 +56,9 @@ class Chat extends Component {
       }
     });
 
-    document.querySelector('.' + styles['chat-toggle'] + ' > path').onclick =
-      function () {
-        document.querySelector('#chat').classList.remove('translate-left-100');
-      };
+    document.querySelector('.chat-toggle > path').onclick = function () {
+      document.querySelector('.chat').classList.remove('translate-left-100');
+    };
 
     this.maintainScrollBottom(this.mql);
     this.mql.addEventListener('change', this.maintainScrollBottom);
@@ -85,7 +84,7 @@ class Chat extends Component {
   };
 
   closeChat() {
-    document.querySelector('#chat').classList.add('translate-left-100');
+    document.querySelector('.chat').classList.add('translate-left-100');
   }
 
   onClosedChat(e) {
@@ -101,14 +100,13 @@ class Chat extends Component {
     return (
       <>
         <FontAwesomeIcon
-          className={styles['chat-toggle']}
+          className={`chat-toggle ${styles['chat-toggle']}`}
           icon={faComment}
           color="#43464b"
           size="3x"
         />
         <div
-          className={`${styles.chat} d-flex-column position-fixed translate-left-100`}
-          id="chat"
+          className={`chat d-flex-column position-fixed translate-left-100 ${styles.chat}`}
           onTransitionEnd={this.onClosedChat}
         >
           <div className={`text-right ${styles['bg-dark']}`}>
@@ -119,7 +117,9 @@ class Chat extends Component {
               <FontAwesomeIcon icon={faLongArrowAltLeft} />
             </div>
           </div>
-          <div className={`${styles['chat-body']} p-2 overflow-auto`}></div>
+          <div
+            className={`chat-body p-2 overflow-auto ${styles['chat-body']}`}
+          ></div>
           <textarea
             className={`p-2 rounded text-light ${styles['bg-dark']}`}
             onKeyPress={this.onKeyPress}

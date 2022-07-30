@@ -29,7 +29,7 @@ function DssRoom(props) {
       placeholderRoom = updatedRoom;
 
       setTimeout(() => {
-        const modalEl = document.querySelector('div.modal');
+        const modalEl = document.querySelector('.modal');
         modalEl.classList.remove('show');
         setTimeout(() => {
           setModalText('Next round!');
