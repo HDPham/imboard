@@ -1,148 +1,105 @@
-import React, { Component } from 'react';
-import { Table, Button } from 'reactstrap';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { Button, ListGroup, ListGroupItem } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import GameTable from './GameTable';
-import Voter from './Voter';
-import classNames from 'classnames';
+import Vote from './Vote';
 import styles from '../../DssStyle.module.scss';
-import socket from '../../../socket-client';
-import PropTypes from 'prop-types';
-import { DssContext } from '../../context/DssState';
+import { dssSocket as socket } from '../../../socketClient';
+// import PropTypes from 'prop-types';
 
-class Stage1 extends Component {
-	choosePlayer = e => {
-		const { room, currPlayer, judgeName, setPlayer } = this.context;
+function Stage1() {
+  const { room, myPlayer } = useSelector((state) => ({
+    room: state.room,
+    myPlayer: state.myPlayer,
+  }));
+  const judge = room.players[room.currentTurn];
+  const votedFor = room.players.find(
+    (player) => player._id === myPlayer?.id,
+  )?.votedFor;
 
-		const isPlayer = currPlayer !== null,
-			isJudge = currPlayer?.name === judgeName,
-			isNomineeButton = e.currentTarget.value === currPlayer?.chosenPlayerName,
-			isJudgeButton = e.currentTarget.value === judgeName;
+  const votePlayer = (e) => {
+    const isJudge = myPlayer?.id === judge._id;
+    const isTargetJudge = e.currentTarget.value === judge._id;
+    const targetPlayer = room.players.find(
+      (player) => player._id === e.currentTarget.value,
+    );
+    const isAlreadySelected =
+      !targetPlayer || targetPlayer.username === votedFor;
 
-		if (
-			isPlayer &&
-			!isJudge &&
-			!isNomineeButton &&
-			!isJudgeButton &&
-			room.inProgress
-		) {
-			// Set current player isReady flag to true -> Update current room
-			const updatedRoom = {
-				...room,
-				players: [...room.players]
-			};
-			const updatedPoll = { ...this.props.poll };
+    if (
+      !myPlayer ||
+      !room.inProgress ||
+      isJudge ||
+      isTargetJudge ||
+      isAlreadySelected
+    ) {
+      return;
+    }
 
-			const currPlayerIndex = updatedRoom.players.findIndex(
-				player => player.name === currPlayer.name
-			);
-			updatedRoom.players[currPlayerIndex] = {
-				...room.players[currPlayerIndex]
-			};
-			updatedRoom.players[currPlayerIndex].isReady = true;
+    socket.emit('player vote', targetPlayer.username);
+  };
 
-			updatedPoll[e.currentTarget.value].push(currPlayer.name);
-			if (currPlayer.chosenPlayerName !== '') {
-				updatedPoll[currPlayer.chosenPlayerName].splice(
-					updatedPoll[currPlayer.chosenPlayerName].indexOf(currPlayer.name),
-					1
-				);
-			}
+  const nextStage = () => {
+    if (!myPlayer || myPlayer.id !== judge._id) {
+      return;
+    }
 
-			setPlayer({
-				name: currPlayer.name,
-				chosenPlayerName: e.currentTarget.value
-			});
-			this.context.updateRoomAllClients(updatedRoom);
-			socket.emit('update room state (all clients) [dss]', {
-				poll: updatedPoll
-			});
-		}
-	};
+    const isAllPlayersReady = room.players.every(
+      (player) => player.isReady || player._id === judge._id,
+    );
 
-	nextStage = () => {
-		this.context.updateRoomAllClients({
-			...this.context.room,
-			players: this.context.room.players.map(player => ({
-				...player,
-				isReady: false
-			}))
-		});
-		socket.emit('update room state (all clients) [dss]', { stage: 2 });
-	};
+    if (isAllPlayersReady) {
+      socket.emit('next stage', 2);
+    }
+  };
 
-	render() {
-		const { room, currPlayer, judgeName } = this.context;
+  const readyPanel =
+    room.inProgress && room.players.length > 0 ? (
+      <ListGroup>
+        {room.players
+          .filter((player) => player._id !== judge._id)
+          .map((player, index) => (
+            <ListGroupItem key={player._id} className="text-white bg-dark">
+              {player.username}
+              {player.isReady && (
+                <FontAwesomeIcon
+                  icon={faCheck}
+                  color="green"
+                  className={`position-absolute ${styles['ready-icon']}`}
+                />
+              )}
+            </ListGroupItem>
+          ))}
+      </ListGroup>
+    ) : null;
 
-		const readyPanel = (
-			<Table dark className="mb-0 rounded">
-				<tbody>
-					{room.players
-						.filter(player => player.name !== judgeName)
-						.map((player, index) => (
-							<tr key={player.name}>
-								<th
-									scope="row"
-									className={classNames({
-										'border-0': index === 0,
-										'position-relative': true
-									})}
-								>
-									{player.name}
-									{player.isReady && (
-										<FontAwesomeIcon
-											icon={faCheck}
-											color="green"
-											className={`position-absolute ${styles['ready-icon']}`}
-										/>
-									)}
-								</th>
-							</tr>
-						))}
-				</tbody>
-			</Table>
-		);
-
-		return (
-			<>
-				<GameTable sidePanel={readyPanel} cardState={this.props.cardState} />
-				<div className="mt-5 font-weight-bold">
-					Initial Voting Stage: Everyone, except the judge, chooses who they
-					think the statement applies to most
-				</div>
-				<Voter
-					players={room.players}
-					judgeName={judgeName}
-					chosenPlayerName={currPlayer.chosenPlayerName}
-					choosePlayer={this.choosePlayer}
-				/>
-				{currPlayer.name === judgeName && (
-					<Button
-						outline
-						color="success"
-						className="mt-3"
-						onClick={this.nextStage}
-						disabled={
-							!room.players.every(
-								player => player.isReady || player.name === judgeName
-							)
-						}
-					>
-						Next Stage
-					</Button>
-				)}
-			</>
-		);
-	}
+  return (
+    <>
+      <GameTable sidePanel={readyPanel} card={room.card} />
+      <div className="mt-5 font-weight-bold">
+        Initial Voting Stage: Everyone, except the judge, chooses who they think
+        the statement applies to most.
+      </div>
+      {room.inProgress && (
+        <Vote votedFor={votedFor} handlePlayerButtonClick={votePlayer} />
+      )}
+      {room.inProgress && myPlayer?.id === judge._id && (
+        <Button
+          outline
+          color="success"
+          className="mt-3"
+          onClick={nextStage}
+          disabled={room.players.some(
+            (player) => !player.isReady && player._id !== judge._id,
+          )}
+        >
+          Next Stage
+        </Button>
+      )}
+    </>
+  );
 }
-
-Stage1.propTypes = {
-	cardState: PropTypes.exact({
-		index: PropTypes.number.isRequired,
-		cards: PropTypes.arrayOf(PropTypes.string).isRequired
-	}).isRequired,
-	poll: PropTypes.object.isRequired
-};
-Stage1.contextType = DssContext;
 
 export default Stage1;

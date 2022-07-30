@@ -4,95 +4,95 @@ $active-color: #282;
 $active-bs-color: #272;
 
 body {
-	background-color: $bg-color-main;
-	color: $color-main;
+  background-color: $bg-color-main;
+  color: $color-main;
 }
 
 input {
-	text-align: center;
+  text-align: center;
 }
 
 .font-impact {
-	font-family: Impact, Charcoal, sans-serif;
+  font-family: Impact, Charcoal, sans-serif;
 }
 
 .font-geo {
-	font-family: 'Geo', sans-serif;
+  font-family: "Geo", sans-serif;
 }
 
 .font-oswald {
-	font-family: 'Oswald', sans-serif;
+  font-family: "Oswald", sans-serif;
 }
 
 .font-size-2 {
-	font-size: 2rem;
+  font-size: 2rem;
 }
 
 .d-flex-column {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .flex-center {
-	justify-content: center;
-	align-items: center;
+  justify-content: center;
+  align-items: center;
 }
 
 .pb-6 {
-	padding-bottom: 6rem;
+  padding-bottom: 6rem;
 }
 
 .top-0 {
-	top: 0;
+  top: 0;
 }
 
 .right-0 {
-	right: 0;
+  right: 0;
 }
 
 .bottom-rem-1 {
-	bottom: 1rem;
+  bottom: 1rem;
 }
 
 .line-through-0 {
-	text-decoration-line: underline overline;
+  text-decoration-line: underline overline;
 }
 
 .btn-active {
-	border-color: $active-color !important;
-	background-color: $active-color !important;
+  border-color: $active-color !important;
+  background-color: $active-color !important;
 
-	&:focus {
-		box-shadow: 0 0 0 0.2rem $active-bs-color !important;
-	}
+  &:focus {
+    box-shadow: 0 0 0 0.2rem $active-bs-color !important;
+  }
 }
 
 .translate-left-100 {
-	transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
 .title-not {
-	animation: fadein 1s 1s forwards;
-	opacity: 0;
-	left: -2.5rem;
-	top: -1.25rem;
-	transform: rotate(-30deg);
+  animation: fadein 1s 1s forwards;
+  opacity: 0;
+  left: -2.5rem;
+  top: -1.25rem;
+  transform: rotate(-30deg);
 }
 
 .fade-in {
-	animation-name: fadein;
-	animation-duration: 1s;
-	animation-fill-mode: forward;
+  animation-name: fadein;
+  animation-duration: 1s;
+  animation-fill-mode: forward;
 }
 
 @keyframes fadein {
-	0% {
-		opacity: 0;
-	}
+  0% {
+    opacity: 0;
+  }
 
-	100% {
-		opacity: 1;
-	}
+  100% {
+    opacity: 1;
+  }
 }
 
 // Extra small devices (portrait phones, less than 576px)
@@ -104,13 +104,13 @@ input {
 
 // Medium devices (tablets, 768px and up)
 @media (min-width: 768px) {
-	.mt-md-vh-10 {
-		margin-top: 10vh;
-	}
+  .mt-md-vh-10 {
+    margin-top: 10vh;
+  }
 
-	.mt-md-rem-4 {
-		margin-top: 4rem;
-	}
+  .mt-md-rem-4 {
+    margin-top: 4rem;
+  }
 }
 
 // Large devices (desktops, 992px and up)

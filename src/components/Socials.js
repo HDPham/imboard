@@ -4,30 +4,30 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 
-const Socials = props => {
-	const { className } = props;
+function Socials(props) {
+  const { className } = props;
 
-	return (
-		<div className={classNames(className, 'text-center')}>
-			<a
-				title="Github"
-				href="https://github.com/HDPham"
-				target="_blank"
-				rel="noopener noreferrer"
-				className="d-inline-block"
-			>
-				<FontAwesomeIcon
-					icon={faGithub}
-					color="white"
-					size="3x"
-				></FontAwesomeIcon>
-			</a>
-		</div>
-	);
-};
+  return (
+    <div className={classNames(className, 'text-center')}>
+      <a
+        title="Github"
+        href="https://github.com/HDPham"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="d-inline-block"
+      >
+        <FontAwesomeIcon
+          icon={faGithub}
+          color="white"
+          size="3x"
+        ></FontAwesomeIcon>
+      </a>
+    </div>
+  );
+}
 
 Socials.propTypes = {
-	className: PropTypes.string
+  className: PropTypes.string,
 };
 
 export default Socials;

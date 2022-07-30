@@ -1,39 +1,40 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.scss';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Provider } from 'react-redux';
 import Home from './components/Home';
 import Coup from './coup/CoupApp';
 import Dss from './dss/DssApp';
 import NoPage from './components/NoPage';
-import { CoupProvider } from './coup/context/CoupState';
-import { DssProvider } from './dss/context/DssState';
+import coupStore from './coup/store';
+import dssStore from './dss/store';
 
 function App() {
-	return (
-		<Router>
-			<Switch>
-				<Route exact path="/" component={Home} />
-				<Route
-					path="/coup"
-					render={() => (
-						<CoupProvider>
-							<Coup />
-						</CoupProvider>
-					)}
-				/>
-				<Route
-					path="/dss"
-					render={() => (
-						<DssProvider>
-							<Dss />
-						</DssProvider>
-					)}
-				/>
-				<Route component={NoPage} />
-			</Switch>
-		</Router>
-	);
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/coup/*"
+          element={
+            <Provider store={coupStore}>
+              <Coup />
+            </Provider>
+          }
+        />
+        <Route
+          path="/dss/*"
+          element={
+            <Provider store={dssStore}>
+              <Dss />
+            </Provider>
+          }
+        />
+        <Route element={<NoPage />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

@@ -8,80 +8,87 @@ $turn-true-color: #777;
 $turn-false-color: #282828;
 
 @mixin icon-hover {
-	&:hover {
-		color: $color-icon-hover;
-	}
+  &:hover {
+    color: $color-icon-hover;
+    cursor: pointer;
+  }
 }
 
 .bg-dark {
-	background-color: $bg-dark;
+  background-color: $bg-dark;
 }
 
-#chat-toggle {
-	position: absolute;
-	bottom: 1rem;
+.chat-toggle {
+  position: absolute;
+  bottom: 1rem;
 
-	> path {
-		@include icon-hover;
-	}
+  > path {
+    @include icon-hover;
+  }
 }
 
-#chat {
-	z-index: 1;
-	left: 0;
-	bottom: 0;
-	width: 100%;
-	transition: transform 250ms linear;
+.chat {
+  z-index: 1;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  transition: transform 250ms linear;
 
-	.chat-icon-container {
-		@include icon-hover;
-		width: 1.5rem;
-		color: $steel-grey;
-	}
+  .chat-icon-container {
+    @include icon-hover;
+    width: 1.5rem;
+    color: $steel-grey;
+  }
 
-	> #chat-body {
-		flex-grow: 1;
-		background-color: $bg-chat-body;
-	}
+  > .chat-body {
+    flex-grow: 1;
+    background-color: $bg-chat-body;
+  }
 
-	> textarea {
-		flex: 0 0 2.75rem;
-		border-color: $steel-grey;
-		resize: none;
-	}
+  > textarea {
+    flex: 0 0 2.75rem;
+    border-color: $steel-grey;
+    resize: none;
+  }
+}
+
+.timer {
+  position: absolute;
+  top: 5%;
+  right: 5%;
 }
 
 .player {
-	max-width: 16rem;
-	min-height: 8rem;
+  max-width: 16rem;
+  min-height: 8rem;
 
-	box-shadow: 0 0 1rem $nero;
+  box-shadow: 0 0 1rem $nero;
 
-	.player-icon {
-		position: absolute;
-		top: -0.75rem;
-		right: -0.5rem;
-	}
+  .player-icon {
+    position: absolute;
+    top: -0.75rem;
+    right: -0.5rem;
+  }
 
-	&[data-turn='true'] {
-		background-color: $turn-true-color;
-	}
+  &[data-turn="true"] {
+    background-color: $turn-true-color;
+  }
 
-	&[data-turn='false'] {
-		background-color: $turn-false-color;
-	}
+  &[data-turn="false"] {
+    background-color: $turn-false-color;
+  }
 
-	&[data-eliminated='true'] {
-		background-color: $nero;
+  &[data-eliminated="true"] {
+    background-color: $nero;
 
-		:last-child {
-			opacity: 0.25;
-		}
-	}
+    :last-child {
+      opacity: 0.25;
+    }
+  }
 }
 
 .btn-action {
-	min-width: 7.5rem;
+  min-width: 7.5rem;
 }
 
 // Extra small devices (portrait phones, less than 576px)
@@ -93,56 +100,56 @@ $turn-false-color: #282828;
 
 // Medium devices (tablets, 768px and up)
 @media (min-width: 768px) {
-	#chat-toggle {
-		z-index: 1;
-		left: 3rem;
-		top: 1.5rem;
-	}
+  .chat-toggle {
+    z-index: 1;
+    left: 3rem;
+    top: 1.5rem;
+  }
 
-	#chat {
-		width: auto;
-	}
+  .chat {
+    width: 20%;
+  }
 
-	#table {
-		min-height: 50vh;
-	}
+  #table {
+    min-height: 50vh;
+  }
 }
 
 // Large devices (desktops, 992px and up)
 @media (min-width: 992px) {
-	#table {
-		&[data-num-players='4'] {
-			height: 55vh;
-		}
+  #table {
+    &[data-num-players="4"] {
+      height: 55vh;
+    }
 
-		&[data-num-players='6'] {
-			height: 60vh;
-		}
+    &[data-num-players="6"] {
+      height: 60vh;
+    }
 
-		.bottom-1x {
-			bottom: 2.5rem;
-		}
+    .bottom-1x {
+      bottom: 2.5rem;
+    }
 
-		.bottom-2x {
-			bottom: 5rem;
-		}
+    .bottom-2x {
+      bottom: 5rem;
+    }
 
-		.bottom-3x {
-			bottom: 7.5rem;
-		}
+    .bottom-3x {
+      bottom: 7.5rem;
+    }
 
-		.bottom-4x {
-			bottom: 10rem;
-		}
+    .bottom-4x {
+      bottom: 10rem;
+    }
 
-		.right {
-			right: 7.5rem;
-		}
+    .right {
+      right: 7.5rem;
+    }
 
-		.left {
-			left: 7.5rem;
-		}
-	}
+    .left {
+      left: 7.5rem;
+    }
+  }
 }
 
 // Extra large devices (large desktops, 1200px and up)

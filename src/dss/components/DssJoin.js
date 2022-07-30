@@ -1,117 +1,130 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-	Container,
-	Button,
-	Form,
-	FormGroup,
-	Label,
-	Input,
-	Alert
+  Container,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Alert,
 } from 'reactstrap';
-import socket from '../../socket-client';
-import PropTypes from 'prop-types';
-import { DssContext } from '../context/DssState';
+import { setRoom } from '../roomSlice';
+import { dssSocket as socket } from '../../socketClient';
+// import PropTypes from 'prop-types';
 
-class DssJoin extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			isOpen: false,
-			isHidden: true,
-			alertText: ''
-		};
-	}
+function DssJoin() {
+  const [roomCode, setRoomCode] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(true);
+  const [alertText, setAlertText] = useState('');
 
-	/**
-	 * Enters room if room exists
-	 *
-	 * @param {Object} e
-	 */
-	checkRoom = async e => {
-		e.preventDefault();
+  const room = useSelector((state) => state.room);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-		const newRoomCode = document.forms[0].code.value;
+  useEffect(() => {
+    socket.on('enter lobby', () => {
+      navigate('/dss/lobby');
+    });
 
-		if (this.context.room !== null && this.context.room.code === newRoomCode) {
-			this.props.history.push('/dss/lobby');
-		} else if (/[0-9A-Za-z]{5}/.test(newRoomCode)) {
-			const newRoom = await fetch(`/api/rooms/${newRoomCode}`).then(res =>
-				res.json()
-			);
+    return () => {
+      socket.off('enter lobby');
+    };
+  }, [navigate]);
 
-			if (newRoom !== null) {
-				socket.emit('enter room [dss]', newRoom._id);
-				this.context.setPlayer(null);
-				this.context.setRoom(newRoom);
-				this.props.history.push('/dss/lobby');
-			} else {
-				this.setState({
-					isOpen: !this.state.isOpen,
-					isHidden: false,
-					alertText: 'That room does not exist'
-				});
-			}
-		} else {
-			this.setState({
-				isOpen: !this.state.isOpen,
-				isHidden: false,
-				alertText:
-					'Must only contain letters and/or numbers (i.e. a-z, A-Z, 0-9)'
-			});
-		}
-	};
+  /**
+   * Enter room if room exists
+   *
+   * @param {Object} e
+   */
+  const handleJoinFormSubmit = async (e) => {
+    e.preventDefault();
 
-	onEnter = e => (e.style.transition = '');
+    if (room !== null && room.code === roomCode) {
+      navigate('/dss/lobby');
+      return;
+    }
 
-	onExit = e => (e.style.transition = 'none');
+    if (roomCode.length !== 6) {
+      setIsOpen(!isOpen);
+      setIsHidden(false);
+      setAlertText('Must be 6 characters long.');
+      return;
+    }
 
-	onExited = () => this.setState({ isOpen: true });
+    if (/[^0-9A-Za-z]/g.test(roomCode)) {
+      setIsOpen(!isOpen);
+      setIsHidden(false);
+      setAlertText(
+        'Must only contain letters and/or numbers (i.e. a-z, A-Z, 0-9).',
+      );
+      return;
+    }
 
-	render() {
-		return (
-			<Container tag="main" className="d-flex vh-100 align-items-center">
-				<div className="d-flex-column w-100 align-items-center text-center">
-					<Form onSubmit={this.checkRoom}>
-						<FormGroup>
-							<Label>Enter Room Code</Label>
-							<Input
-								type="text"
-								name="code"
-								className="w-auto mx-auto"
-								size="10"
-								minLength="5"
-								maxLength="5"
-								autoComplete="off"
-								required
-							/>
-						</FormGroup>
-						<Button outline>Enter</Button>
-					</Form>
-					<Alert
-						isOpen={this.state.isOpen}
-						transition={{
-							timeout: 150,
-							onEnter: this.onEnter,
-							onExit: this.onExit,
-							onExited: this.onExited
-						}}
-						color="danger"
-						className="mt-4"
-						hidden={this.state.isHidden}
-					>
-						{this.state.alertText}
-					</Alert>
-				</div>
-				<Link to="/dss" className="position-absolute bottom-rem-1">
-					<Button>&larr; Go Back</Button>
-				</Link>
-			</Container>
-		);
-	}
+    const newRoom = await fetch('/api/dss/rooms/' + roomCode).then((res) =>
+      res.json(),
+    );
+
+    if (!newRoom) {
+      setIsOpen(!isOpen);
+      setIsHidden(false);
+      setAlertText('Room not found.');
+    }
+
+    dispatch(setRoom(newRoom));
+    socket.auth = { roomId: newRoom._id };
+    socket.connect();
+  };
+
+  const handleRoomCodeChange = (e) => setRoomCode(e.target.value);
+
+  const onEnter = (e) => (e.style.transition = '');
+
+  const onExit = (e) => (e.style.transition = 'none');
+
+  const onExited = () => setIsOpen(true);
+
+  return (
+    <Container tag="main" className="d-flex vh-100 align-items-center">
+      <div className="d-flex-column w-100 align-items-center text-center">
+        <Form onSubmit={handleJoinFormSubmit}>
+          <FormGroup>
+            <Label>Enter Room Code</Label>
+            <Input
+              type="text"
+              name="room_code"
+              className="w-auto mx-auto"
+              size="10"
+              maxLength="6"
+              autoComplete="off"
+              required
+              onChange={handleRoomCodeChange}
+            />
+          </FormGroup>
+          <Button outline>Enter</Button>
+        </Form>
+        <Alert
+          isOpen={isOpen}
+          transition={{
+            timeout: 150,
+            onEnter: onEnter,
+            onExit: onExit,
+            onExited: onExited,
+          }}
+          color="danger"
+          className="mt-4"
+          hidden={isHidden}
+        >
+          {alertText}
+        </Alert>
+      </div>
+      <Link to="/dss" className="position-absolute bottom-rem-1">
+        <Button>&larr; Go Back</Button>
+      </Link>
+    </Container>
+  );
 }
-
-DssJoin.propTypes = { history: PropTypes.object.isRequired };
-DssJoin.contextType = DssContext;
 
 export default DssJoin;

@@ -1,146 +1,135 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-	faComment,
-	faLongArrowAltLeft
+  faComment,
+  faLongArrowAltLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import styles from '../../CoupStyle.module.scss';
-import socket from '../../../socket-client';
-import { CoupContext } from '../../context/CoupState';
+import { coupSocket as socket } from '../../../socketClient';
 
 class Chat extends Component {
-	mql = window.matchMedia('(min-width: 768px)');
+  mql = window.matchMedia('(min-width: 768px)');
 
-	/**
-	 * Maintains scroll bar at the bottom of the chat when switching screen width display
-	 *
-	 * @param {Object} e
-	 */
-	maintainScrollBottom(e) {
-		const chatEl = document.getElementById(styles['chat']);
-		const chatBodyEl = chatEl.querySelector(`#${styles['chat-body']}`);
-		const prevChatBodyClientHeight = chatBodyEl.clientHeight;
-		if (e.matches) {
-			const prevChatBodyScrollTop = chatBodyEl.scrollTop;
+  /**
+   * Maintains scroll bar at the bottom of the chat when switching screen width display
+   *
+   * @param {Object} e
+   */
+  maintainScrollBottom(e) {
+    const chatEl = document.querySelector('#chat');
+    const chatBodyEl = chatEl.querySelector('.' + styles['chat-body']);
+    const prevChatBodyClientHeight = chatBodyEl.clientHeight;
+    if (e.matches) {
+      const prevChatBodyScrollTop = chatBodyEl.scrollTop;
 
-			chatEl.style.height = '100%';
-			chatBodyEl.scrollTop =
-				prevChatBodyScrollTop -
-				chatBodyEl.clientHeight +
-				prevChatBodyClientHeight;
-		} else {
-			chatEl.style.height = `${100 / 3}%`;
-			chatBodyEl.scrollTop +=
-				prevChatBodyClientHeight - chatBodyEl.clientHeight;
-		}
-	}
+      chatEl.style.height = '100%';
+      chatBodyEl.scrollTop =
+        prevChatBodyScrollTop -
+        chatBodyEl.clientHeight +
+        prevChatBodyClientHeight;
+    } else {
+      chatEl.style.height = `${100 / 3}%`;
+      chatBodyEl.scrollTop +=
+        prevChatBodyClientHeight - chatBodyEl.clientHeight;
+    }
+  }
 
-	componentDidMount() {
-		socket.on('chat message', (playerName, message) => {
-			const playerNameSpan = document.createElement('span');
-			playerNameSpan.classList.add('font-weight-bold');
-			playerNameSpan.textContent = playerName;
+  componentDidMount() {
+    socket.on('chat message', (playerName, message) => {
+      const playerNameSpan = document.createElement('span');
+      playerNameSpan.classList.add('font-weight-bold');
+      playerNameSpan.textContent = playerName;
 
-			const messageDiv = document.createElement('div');
-			messageDiv.classList.add('text-break');
-			messageDiv.append(playerNameSpan);
-			messageDiv.append(`: ${message}`);
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('text-break');
+      messageDiv.append(playerNameSpan);
+      messageDiv.append(`: ${message}`);
 
-			const chatBodyEl = document.getElementById(styles['chat-body']);
-			const isScrollAtBottom =
-				chatBodyEl.scrollTop + chatBodyEl.clientHeight >=
-				chatBodyEl.scrollHeight;
-			chatBodyEl.append(messageDiv);
-			if (isScrollAtBottom) {
-				messageDiv.scrollIntoView(false);
-			}
-		});
+      const chatBodyEl = document.querySelector('.' + styles['chat-body']);
+      const isScrollAtBottom =
+        chatBodyEl.scrollTop + chatBodyEl.clientHeight >=
+        chatBodyEl.scrollHeight;
+      chatBodyEl.append(messageDiv);
+      if (isScrollAtBottom) {
+        messageDiv.scrollIntoView(false);
+      }
+    });
 
-		document.querySelector(
-			`#${styles['chat-toggle']} > path`
-		).onclick = function () {
-			document
-				.getElementById(styles.chat)
-				.classList.remove('translate-left-100');
-		};
+    document.querySelector('.' + styles['chat-toggle'] + ' > path').onclick =
+      function () {
+        document.querySelector('#chat').classList.remove('translate-left-100');
+      };
 
-		this.maintainScrollBottom(this.mql);
-		this.mql.addEventListener('change', this.maintainScrollBottom);
-	}
+    this.maintainScrollBottom(this.mql);
+    this.mql.addEventListener('change', this.maintainScrollBottom);
+  }
 
-	/**
-	 * Emit message to server
-	 *
-	 * @param {Object} e
-	 */
-	onKeyPress = e => {
-		if (e.key === 'Enter' && !e.shiftKey) {
-			e.preventDefault();
+  /**
+   * Emit message to server
+   *
+   * @param {Object} e
+   */
+  onKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
 
-			socket.emit(
-				'chat message [coup]',
-				this.context.currPlayer.name,
-				e.currentTarget.value
-			);
+      socket.emit(
+        'chat message',
+        this.props.myPlayer.username,
+        e.currentTarget.value,
+      );
 
-			e.currentTarget.value = '';
-		}
-	};
+      e.currentTarget.value = '';
+    }
+  };
 
-	closeChat(e) {
-		e.currentTarget
-			.closest(`#${styles.chat}`)
-			.classList.add('translate-left-100');
-	}
+  closeChat() {
+    document.querySelector('#chat').classList.add('translate-left-100');
+  }
 
-	onClosedChat(e) {
-		e.currentTarget.previousElementSibling.classList.toggle('invisible');
-	}
+  onClosedChat(e) {
+    e.currentTarget.previousElementSibling.classList.toggle('invisible');
+  }
 
-	componentWillUnmount() {
-		socket.off('chat message');
-		document.querySelector(
-			`#${styles['chat-toggle']} > path`
-		).onclick = null;
-		this.mql.removeEventListener('change', this.maintainScrollBottom);
-	}
+  componentWillUnmount() {
+    socket.off('chat message');
+    this.mql.removeEventListener('change', this.maintainScrollBottom);
+  }
 
-	render() {
-		return (
-			<>
-				<FontAwesomeIcon
-					icon={faComment}
-					id={styles['chat-toggle']}
-					color="#43464b"
-					size="3x"
-				/>
-				<div
-					id={styles.chat}
-					className="d-flex-column position-fixed translate-left-100"
-					onTransitionEnd={this.onClosedChat}
-				>
-					<div className={`text-right ${styles['bg-dark']}`}>
-						<div
-							className={`d-inline-block text-center ${styles['chat-icon-container']}`}
-							onClick={this.closeChat}
-						>
-							<FontAwesomeIcon icon={faLongArrowAltLeft} />
-						</div>
-					</div>
-					<div
-						id={styles['chat-body']}
-						className="p-2 overflow-auto"
-					></div>
-					<textarea
-						className={`p-2 rounded text-light ${styles['bg-dark']}`}
-						onKeyPress={this.onKeyPress}
-					/>
-				</div>
-			</>
-		);
-	}
+  render() {
+    return (
+      <>
+        <FontAwesomeIcon
+          className={styles['chat-toggle']}
+          icon={faComment}
+          color="#43464b"
+          size="3x"
+        />
+        <div
+          className={`${styles.chat} d-flex-column position-fixed translate-left-100`}
+          id="chat"
+          onTransitionEnd={this.onClosedChat}
+        >
+          <div className={`text-right ${styles['bg-dark']}`}>
+            <div
+              className={`d-inline-block text-center ${styles['chat-icon-container']}`}
+              onClick={this.closeChat}
+            >
+              <FontAwesomeIcon icon={faLongArrowAltLeft} />
+            </div>
+          </div>
+          <div className={`${styles['chat-body']} p-2 overflow-auto`}></div>
+          <textarea
+            className={`p-2 rounded text-light ${styles['bg-dark']}`}
+            onKeyPress={this.onKeyPress}
+          />
+        </div>
+      </>
+    );
+  }
 }
 
-Chat.contextType = CoupContext;
+const mapStateToProps = (state) => ({ myPlayer: state.myPlayer });
 
-export default Chat;
+export default connect(mapStateToProps)(Chat);

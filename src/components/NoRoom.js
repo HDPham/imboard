@@ -1,14 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-const NoRoom = () => {
-	return (
-		<main className="d-flex-column flex-center vh-100">
-			<Link to={({ pathname }) => `/${pathname.split('/')[1]}`}>
-				&larr; Not In Room, Go Back
-			</Link>
-		</main>
-	);
-};
+function NoRoom() {
+  const { pathname } = useLocation();
+
+  return (
+    <main className="d-flex-column flex-center vh-100">
+      <Link to={'/' + pathname.split('/').at(-2)}>
+        &larr; Not In Room, Go To Home
+      </Link>
+    </main>
+  );
+}
 
 export default NoRoom;

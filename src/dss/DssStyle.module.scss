@@ -1,49 +1,49 @@
 $bg-dark: #111;
 
 .modal-transition {
-	background-color: transparent;
-	border-color: transparent;
+  background-color: transparent;
+  border-color: transparent;
 }
 
 .player-container {
-	flex-basis: 100%;
-	min-width: 10rem;
+  flex-basis: 100%;
+  min-width: 10rem;
 
-	.btn-player {
-		min-width: 7.5rem;
+  .btn-player {
+    min-width: 7.5rem;
 
-		> img {
-			height: 2rem;
-			width: 2rem;
-			top: -1rem;
-			right: -1rem;
-		}
-	}
+    > img {
+      height: 2rem;
+      width: 2rem;
+      top: -1rem;
+      right: -1rem;
+    }
+  }
 }
 
 .ready-icon {
-	right: 1rem;
+  right: 1rem;
 }
 
 #side-panel {
-	width: 12.5rem;
+  width: 12.5rem;
 }
 
 #card-display {
-	min-height: 40vh;
-	background-color: $bg-dark;
+  min-height: 40vh;
+  background-color: $bg-dark;
 }
 
 .loading {
-	overflow: hidden;
-	animation: ellipsis steps(4, jump-none) 900ms infinite;
-	width: 0.01%;
+  overflow: hidden;
+  animation: ellipsis steps(4, jump-none) 900ms infinite;
+  width: 0.01%;
 }
 
 @keyframes ellipsis {
-	to {
-		width: 100%;
-	}
+  to {
+    width: 100%;
+  }
 }
 
 // Extra small devices (portrait phones, less than 576px)
@@ -51,9 +51,9 @@ $bg-dark: #111;
 
 // Small devices (landscape phones, 576px and up)
 @media (min-width: 576px) {
-	.player-container {
-		flex-basis: 20%;
-	}
+  .player-container {
+    flex-basis: 20%;
+  }
 }
 
 // Medium devices (tablets, 768px and up)

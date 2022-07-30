@@ -1,266 +1,122 @@
-import React, { Component } from 'react';
-import { Table, Button, Modal, ModalBody } from 'reactstrap';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Table, Button } from 'reactstrap';
 import GameTable from './GameTable';
-import Voter from './Voter';
-import Timeout from '../../../components/Timeout';
+import Vote from './Vote';
 import styles from '../../DssStyle.module.scss';
-import socket from '../../../socket-client';
-import PropTypes from 'prop-types';
-import { DssContext } from '../../context/DssState';
+import { dssSocket as socket } from '../../../socketClient';
+// import PropTypes from 'prop-types';
 
-class Stage2 extends Component {
-	constructor(props, context) {
-		super(props);
+function Stage2() {
+  const [isReady, setIsReady] = useState(false);
+  const [votedFor, setVotedFor] = useState(null);
 
-		this.state = {
-			isReady: false,
-			chosenButton: null,
-			isTransitionModalActive: false,
-			isEndModalActive: false,
-			modalText: '',
-			isTransitioning: false,
-			judgeName: context.room.players[context.room.judgeIndex].name
-		};
-	}
+  const { room, myPlayer } = useSelector((state) => ({
+    room: state.room,
+    myPlayer: state.myPlayer,
+  }));
+  const judge = room.players[room.currentTurn];
+  const poll = new Map();
+  room.players.forEach((player) => {
+    if (!player.votedFor) {
+      return;
+    }
 
-	componentDidMount() {
-		this.context.setPlayer({
-			name: this.context.currPlayer.name,
-			chosenPlayerName: ''
-		});
+    const votedBy = poll.get(player.votedFor);
 
-		socket.on('round transition', chosenPlayerName => {
-			this.setState(
-				{
-					isTransitionModalActive: true,
-					modalText: `${this.context.judgeName} chose ${chosenPlayerName}`,
-					isTransitioning: true
-				},
-				() => {
-					this.props.setTimeout(() => {
-						const modalEl = document.querySelector('div.modal');
-						modalEl.classList.remove('show');
-						this.props.setTimeout(() => {
-							this.setState({ modalText: 'Next round!' });
-							modalEl.classList.add('show');
-							this.props.setTimeout(() => {
-								this.setState({ isTransitionModalActive: false });
-							}, 3000);
-						}, 500);
-					}, 6000);
-				}
-			);
-		});
-		socket.on('game over transition', loserName => {
-			this.setState(
-				{
-					isEndModalActive: true,
-					modalText: `${loserName} Lost!`,
-					isTransitioning: true
-				},
-				() => {
-					this.props.setTimeout(() => {
-						this.setState({ isEndModalActive: false });
-					}, 6000);
-				}
-			);
-		});
+    if (votedBy) {
+      votedBy.push(player.username);
+    } else {
+      poll.set(player.votedFor, [player.username]);
+    }
+  });
 
-		socket.on('start game', () => {
-			socket.emit('initialize room state');
-		});
-	}
+  const choosePlayer = (e) => {
+    const isJudge = myPlayer?.id === judge._id;
+    const isTargetJudge = e.currentTarget.value === judge._id;
+    const isAlreadySelected = e.currentTarget.value === votedFor?.id;
 
-	componentDidUpdate(prevProps) {
-		if (prevProps.players.length !== this.props.players.length) {
-			this.setState({
-				judgeName: this.context.room.players[this.context.room.judgeIndex].name
-			});
-		}
-	}
+    if (!room.inProgress || !isJudge || isTargetJudge || isAlreadySelected) {
+      return;
+    }
 
-	choosePlayer = e => {
-		const isJudge = this.context.currPlayer?.name === this.context.judgeName,
-			isNomineeButton =
-				e.currentTarget.value === this.state.chosenButton?.value,
-			isJudgeButton = e.currentTarget.value === this.context.judgeName;
+    const newVotedFor = room.players.find(
+      (player) => player._id === e.currentTarget.value,
+    );
+    setVotedFor({ id: newVotedFor._id, username: newVotedFor.username });
+    setIsReady(true);
+  };
 
-		if (
-			isJudge &&
-			!isNomineeButton &&
-			!isJudgeButton &&
-			this.context.room.inProgress
-		) {
-			// Activate chosen player's button
-			this.setState({
-				isReady: true,
-				chosenButton: e.currentTarget
-			});
-		}
-	};
+  const handleJudgeVoteClick = () => {
+    socket.emit('judge vote', votedFor);
+  };
 
-	processJudgeVote = () => {
-		const { room, updateRoomAllClients } = this.context;
-		const { cardState } = this.props;
-		const { chosenButton } = this.state;
+  const pollPanel =
+    poll.size > 0
+      ? [...poll]
+          .filter(([votedFor, voters]) => voters.length > 0)
+          .map(([votedFor, voters]) => (
+            <Table key={votedFor} borderless className="mb-0 text-white">
+              <thead>
+                <tr className="border-bottom">
+                  <th className="p-2">
+                    {voters.length === 1
+                      ? `${votedFor} (1 vote)`
+                      : `${votedFor} (${voters.length} votes)`}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="p-2">
+                    {voters.length === 1
+                      ? voters[0]
+                      : voters.length === 2
+                      ? voters.join(' & ')
+                      : `${voters.slice(0, -1).join(', ')}, and ${
+                          voters[voters.length - 1]
+                        }`}
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
+          ))
+      : null;
 
-		const updatedScore = Number(chosenButton.dataset.score) + 1;
-
-		const updatedRoom = {
-			...room,
-			players: [...room.players]
-		};
-		updatedRoom.players[chosenButton.dataset.index] = {
-			...room.players[chosenButton.dataset.index]
-		};
-		updatedRoom.players[chosenButton.dataset.index].score = updatedScore;
-
-		if (updatedScore < 7) {
-			// Continue Game
-			const updatedCards = [...cardState.cards];
-			updatedCards.splice(cardState.index, 1);
-
-			const nextCardIndex = Math.floor(Math.random() * updatedCards.length);
-
-			updatedRoom.judgeIndex =
-				room.judgeIndex < room.players.length - 1 ? room.judgeIndex + 1 : 0;
-
-			socket.emit('set room state [dss]', {
-				stage: 1,
-				cardIndex: nextCardIndex,
-				cards: updatedCards,
-				poll: {}
-			});
-			socket.emit('round transition [dss]', chosenButton.value);
-		} else {
-			// Game Over
-			updatedRoom.inProgress = false;
-			updatedRoom.players = [];
-			updatedRoom.judgeIndex = -1;
-
-			socket.emit('game over transition [dss]', chosenButton.value);
-		}
-
-		updateRoomAllClients(updatedRoom);
-	};
-
-	onClosed = () => {
-		if (this.context.room.inProgress) {
-			socket.emit('update room state (all clients) [dss]', {
-				stage: 1,
-				poll: Object.fromEntries(
-					this.context.room.players.map(player => [player.name, []])
-				)
-			});
-		} else {
-			this.context.setPlayer(null);
-			socket.emit('set player name [dss]', '');
-		}
-	};
-
-	componentWillUnmount() {
-		socket.off('round transition');
-		socket.off('game over transition');
-		socket.off('start game');
-	}
-
-	render() {
-		const { room, currPlayer } = this.context,
-			{ cardState, poll } = this.props,
-			{
-				chosenButton,
-				isReady,
-				isTransitionModalActive,
-				isEndModalActive,
-				modalText,
-				judgeName
-			} = this.state;
-
-		const pollPanel = Object.entries(poll)
-			.filter(entry => entry[1].length > 0)
-			.map(([nominee, voters]) => (
-				<Table key={nominee} borderless className="mb-0 text-white">
-					<thead>
-						<tr className="border-bottom">
-							<th scope="row" className="p-2">
-								{voters.length === 1
-									? `${nominee} (1 vote)`
-									: `${nominee} (${voters.length} votes)`}
-							</th>
-						</tr>
-						<tr>
-							<td className="p-2 pb-0">
-								{voters.length === 1
-									? voters[0]
-									: voters.length === 2
-									? voters.join(' & ')
-									: `${voters.slice(0, -1).join(', ')}, and ${
-											voters[voters.length - 1]
-									  }`}
-							</td>
-						</tr>
-					</thead>
-				</Table>
-			));
-
-		return (
-			<>
-				<GameTable sidePanel={pollPanel} cardState={cardState} />
-				<div className="mt-5 font-weight-bold">
-					Discussion Stage: Judge makes final decision
-				</div>
-				{room.inProgress && (
-					<div className="mt-3">
-						<span>{judgeName} is judging</span>
-						<span className="d-inline-block align-bottom">
-							<div className={styles.loading}>...</div>
-						</span>
-					</div>
-				)}
-				<Voter
-					players={room.players}
-					judgeName={judgeName}
-					chosenPlayerName={chosenButton?.value}
-					choosePlayer={this.choosePlayer}
-				/>
-				{room.inProgress && currPlayer?.name === judgeName && (
-					<Button
-						outline
-						color="success"
-						className="mt-3"
-						onClick={this.processJudgeVote}
-						disabled={!isReady}
-					>
-						Submit
-					</Button>
-				)}
-				<Modal
-					isOpen={isTransitionModalActive || isEndModalActive}
-					onClosed={this.onClosed}
-					centered={true}
-					contentClassName={styles['modal-transition']}
-				>
-					<ModalBody className="text-center display-4">{modalText}</ModalBody>
-				</Modal>
-			</>
-		);
-	}
+  return (
+    <>
+      <GameTable sidePanel={pollPanel} card={room.card} />
+      <div className="mt-5 font-weight-bold">
+        Discussion Stage: Judge makes final decision.
+        {room.inProgress && myPlayer?.id !== judge._id && (
+          <>
+            <br />
+            <span>{judge.username} is judging</span>
+            <span className="d-inline-block align-bottom">
+              <span className={'d-block ' + styles.loading}>...</span>
+            </span>
+          </>
+        )}
+      </div>
+      {room.inProgress && (
+        <Vote
+          votedFor={votedFor?.username}
+          handlePlayerButtonClick={choosePlayer}
+        />
+      )}
+      {room.inProgress && myPlayer?.id === judge._id && (
+        <Button
+          outline
+          color="success"
+          className="mt-3"
+          onClick={handleJudgeVoteClick}
+          disabled={!isReady}
+        >
+          Submit
+        </Button>
+      )}
+    </>
+  );
 }
 
-Stage2.propTypes = {
-	players: PropTypes.arrayOf(
-		PropTypes.exact({
-			name: PropTypes.string.isRequired,
-			isReady: PropTypes.bool.isRequired,
-			score: PropTypes.number.isRequired
-		})
-	).isRequired,
-	cardState: PropTypes.exact({
-		index: PropTypes.number.isRequired,
-		cards: PropTypes.arrayOf(PropTypes.string).isRequired
-	}).isRequired,
-	poll: PropTypes.object.isRequired
-};
-Stage2.contextType = DssContext;
-
-export default Timeout(Stage2);
+export default Stage2;
