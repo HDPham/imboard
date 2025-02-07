@@ -26,10 +26,10 @@ app.use('/api/coup/rooms', require('./route/api/coupRooms'));
 
 if (NODE_ENV === 'production') {
   // Set static folder
-  app.use(express.static('build'));
+  app.use(express.static('dist'));
 
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(process.cwd(), 'build', 'index.html'));
+    res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
   });
 }
 

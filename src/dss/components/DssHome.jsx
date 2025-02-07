@@ -23,7 +23,8 @@ function DssHome() {
   }, [navigate]);
 
   /**
-   * Create and set new room and enter /dss/lobby route
+   * Create and set new room
+   * Enter /dss/lobby route
    */
   const createRoom = async () => {
     const newRoom = await fetch('/api/dss/rooms', { method: 'POST' }).then(

@@ -15,6 +15,10 @@ const playerSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    cards: {
+      type: [String],
+      required: true,
+    },
     discardedCards: {
       type: [String],
       required: true,
